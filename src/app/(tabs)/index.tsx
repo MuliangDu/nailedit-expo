@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
   },
   goalsContainer: {
     flex: 1,
+    width: "100%",
   },
   footerContainer: {
     flex: 1 / 4,
