@@ -123,13 +123,14 @@ export default function AddGoalModal({
             />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-            <Pressable style={styles.createButton} onPress={handleSubmit}>
-              <Text style={styles.createButtonText}>Create Goal</Text>
-            </Pressable>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </Pressable>
+            <View style={styles.actions}>
+              <Pressable style={styles.createButton} onPress={handleSubmit}>
+                <Text style={styles.createButtonText}>Create Goal</Text>
+              </Pressable>
+              <Pressable style={styles.closeButton} onPress={onClose}>
+                <Text style={styles.closeButtonText}>Cancel</Text>
+              </Pressable>
+            </View>
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -156,12 +157,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   closeButton: {
+    flex: 1,
     height: 50,
-    backgroundColor: "#ffd33d",
+    backgroundColor: "#3a3f44",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
   },
   closeButtonText: {
     color: "#fff",
@@ -190,12 +191,12 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   createButton: {
+    flex: 1,
     height: 50,
     backgroundColor: "#36d17c",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
   },
   createButtonText: {
     color: "#25292e",
@@ -206,5 +207,10 @@ const styles = StyleSheet.create({
     color: "#ff6b6b",
     fontSize: 14,
     marginTop: 12,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
   },
 });
