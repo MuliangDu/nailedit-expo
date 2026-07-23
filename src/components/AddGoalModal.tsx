@@ -7,20 +7,56 @@ import {
   View,
 } from "react-native";
 
+import type { AddGoalFormData } from "@/types/goal";
 import { useState } from "react";
 
 type AddGoalModalProps = {
   isVisible: boolean;
   onClose: () => void;
+  onSubmit: (goal: AddGoalFormData) => void;
 };
 
 export default function AddGoalModal({
   isVisible,
   onClose,
+  onSubmit,
 }: AddGoalModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState("");
+  const [error, setError] = useState("");
+
+  function handleSubmit() {
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    const parsedDuration = Number(duration);
+
+    if (!trimmedName) {
+      setError("Please enter a goal name");
+      return;
+    }
+
+    if (!trimmedDescription) {
+      setError("Please enter a description");
+      return;
+    }
+
+    if (
+      !duration.trim() ||
+      !Number.isInteger(parsedDuration) ||
+      parsedDuration <= 0
+    ) {
+      setError("Duration must be a positive whole number.");
+      return;
+    }
+
+    const goalData: AddGoalFormData = {
+      name: trimmedName,
+      description: trimmedDescription,
+      duration: parsedDuration,
+    };
+    onSubmit(goalData);
+  }
 
   return (
     <Modal
@@ -62,6 +98,12 @@ export default function AddGoalModal({
             placeholderTextColor={"#777d84"}
             keyboardType={"number-pad"}
           />
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <Pressable style={styles.createButton} onPress={handleSubmit}>
+            <Text style={styles.createButtonText}>Create Goal</Text>
+          </Pressable>
           <Pressable style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>Close</Text>
           </Pressable>
@@ -121,5 +163,23 @@ const styles = StyleSheet.create({
   },
   descriptionInput: {
     minHeight: 100,
+  },
+  createButton: {
+    height: 50,
+    backgroundColor: "#36d17c",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  createButtonText: {
+    color: "#25292e",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 14,
+    marginTop: 12,
   },
 });

@@ -4,3 +4,9 @@ export type Goal = {
   duration: number;
   streak: number;
 };
+
+export type AddGoalFormData = {
+  name: string;
+  description: string;
+  duration: number;
+};
