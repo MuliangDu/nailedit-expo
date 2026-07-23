@@ -1,6 +1,9 @@
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -76,50 +79,60 @@ export default function AddGoalModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+
         <View style={styles.modalContainer}>
-          <Text style={styles.title}>Add goal</Text>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.title}>Add goal</Text>
 
-          <Text style={styles.label}>Goal name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder={"For example: Go to the gym"}
-            placeholderTextColor={"#777d84"}
-          />
+            <Text style={styles.label}>Goal name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder={"For example: Go to the gym"}
+              placeholderTextColor={"#777d84"}
+            />
 
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.descriptionInput]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder={"What do you want to achieve?"}
-            placeholderTextColor={"#777d84"}
-            multiline={true}
-            textAlignVertical="top"
-          />
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, styles.descriptionInput]}
+              value={description}
+              onChangeText={setDescription}
+              placeholder={"What do you want to achieve?"}
+              placeholderTextColor={"#777d84"}
+              multiline={true}
+              textAlignVertical="top"
+            />
 
-          <Text style={styles.label}>Duration in days</Text>
-          <TextInput
-            style={styles.input}
-            value={duration}
-            onChangeText={setDuration}
-            placeholder={"For example: 30"}
-            placeholderTextColor={"#777d84"}
-            keyboardType={"number-pad"}
-          />
+            <Text style={styles.label}>Duration in days</Text>
+            <TextInput
+              style={styles.input}
+              value={duration}
+              onChangeText={setDuration}
+              placeholder={"For example: 30"}
+              placeholderTextColor={"#777d84"}
+              keyboardType={"number-pad"}
+            />
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Pressable style={styles.createButton} onPress={handleSubmit}>
-            <Text style={styles.createButtonText}>Create Goal</Text>
-          </Pressable>
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </Pressable>
+            <Pressable style={styles.createButton} onPress={handleSubmit}>
+              <Text style={styles.createButtonText}>Create Goal</Text>
+            </Pressable>
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </Pressable>
+          </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -131,6 +144,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
+    maxHeight: "90%",
     backgroundColor: "#25292e",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
