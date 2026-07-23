@@ -1,21 +1,50 @@
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
-import type { AddGoalFormData } from "@/types/goal";
+import type { AddGoalFormData, Goal } from "@/types/goal";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+const initialGoals: Goal[] = [
+  {
+    id: 1,
+    name: "Eat vegetable",
+    streak: 12,
+    duration: 20,
+    description: "eat vegetable everyday",
+  },
+  {
+    id: 2,
+    name: "study",
+    streak: 15,
+    duration: 25,
+    description: "study everyday",
+  },
+];
+
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
-  function handleAddGoal(goal: AddGoalFormData) {
-    console.log("submitted goal: ", goal);
+  const [goals, setGoals] = useState<Goal[]>(initialGoals);
+
+  function handleAddGoal(formGoal: AddGoalFormData) {
+    const newGoal: Goal = {
+      id: Date.now(),
+      name: formGoal.name,
+      description: formGoal.description,
+      duration: formGoal.duration,
+      streak: 0,
+    };
+
+    setGoals((currentGoals) => [...currentGoals, newGoal]);
+
     setIsAddGoalVisible(false);
   }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Goals</Text>
       <View style={styles.goalsContainer}>
-        <GoalsList />
+        <GoalsList goals={goals} />
       </View>
       <View style={styles.footerContainer}>
         <Button

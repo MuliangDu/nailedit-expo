@@ -1,13 +1,12 @@
-import { Goal } from "@/types/goal";
+import type { Goal } from "@/types/goal";
 import { FlatList, StyleSheet } from "react-native";
 import GoalCard from "./GoalCard";
 
-const goals: Goal[] = [
-  { id: 1, name: "Go to the Gym", streak: 3, duration: 20 },
-  { id: 2, name: "Study React", streak: 15, duration: 30 },
-];
+type GoalsListProps = {
+  goals: Goal[];
+};
 
-export default function GoalsList() {
+export default function GoalsList({ goals }: GoalsListProps) {
   return (
     <FlatList
       data={goals}
