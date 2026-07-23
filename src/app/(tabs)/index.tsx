@@ -1,11 +1,16 @@
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
+import type { AddGoalFormData } from "@/types/goal";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
+  function handleAddGoal(goal: AddGoalFormData) {
+    console.log("submitted goal: ", goal);
+    setIsAddGoalVisible(false);
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Goals</Text>
@@ -22,6 +27,7 @@ export default function Index() {
       <AddGoalModal
         isVisible={isAddGoalVisible}
         onClose={() => setIsAddGoalVisible(false)}
+        onSubmit={handleAddGoal}
       />
     </View>
   );
