@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 import type { AddGoalFormData } from "@/types/goal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AddGoalModalProps = {
   isVisible: boolean;
@@ -25,6 +25,15 @@ export default function AddGoalModal({
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isVisible) {
+      setName("");
+      setDescription("");
+      setDuration("");
+      setError("");
+    }
+  }, [isVisible]);
 
   function handleSubmit() {
     const trimmedName = name.trim();
@@ -49,6 +58,8 @@ export default function AddGoalModal({
       setError("Duration must be a positive whole number.");
       return;
     }
+
+    setError("");
 
     const goalData: AddGoalFormData = {
       name: trimmedName,
