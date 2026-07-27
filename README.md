@@ -57,37 +57,77 @@ relational model for users, goals, and check-ins.
 
 ## Architecture
 
-### Component and state ownership
+### Component tree
+
+The component tree shows rendering relationships only. Every node in this
+diagram represents a React component, and each arrow means that the parent
+renders the child.
+
+```mermaid
+flowchart TD
+    Index["Goals Screen"]
+    Modal["AddGoalModal"]
+    Button["Button"]
+    List["GoalsList"]
+    Card["GoalCard"]
+    Ring["ProgressRing"]
+
+    Index --> Modal
+    Index --> Button
+    Index --> List
+    List --> Card
+    Card --> Ring
+
+    classDef component fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px
+    class Index,Modal,Button,List,Card,Ring component
+```
+
+### State ownership and data flow
 
 Each unique piece of state has one owner. The screen owns data shared by
 multiple components, while the modal keeps its form-specific state local.
 Values that can be calculated, such as goal progress, are derived during
 rendering instead of being stored as additional state.
 
+Diagram conventions:
+
+- Blue rectangles represent React components.
+- Yellow rounded nodes represent state.
+- Green dashed nodes represent derived values.
+- `owns` arrows identify the component responsible for updating a state.
+- Labeled component-to-component arrows show props and callback flow.
+
 ```mermaid
 flowchart TD
-    Index["Goals Screen (Index)"]
-    ModalVisible["isAddGoalVisible"]
-    Goals["goals"]
+    Index["Component<br/>Goals Screen"]
+    Modal["Component<br/>AddGoalModal"]
+    List["Component<br/>GoalsList"]
+    Card["Component<br/>GoalCard"]
 
-    Modal["AddGoalModal"]
-    Form["name, description, duration"]
-    Error["validation error"]
+    ModalVisible(["State<br/>isAddGoalVisible"])
+    Goals(["State<br/>goals"])
+    Form(["State<br/>name / description / duration"])
+    Error(["State<br/>validation error"])
 
-    List["GoalsList"]
-    Card["GoalCard"]
-    Progress["progress = streak / duration"]
+    Progress[/"Derived value<br/>streak / duration"/]
 
-    Index --> ModalVisible
-    Index --> Goals
+    Index -->|"owns"| ModalVisible
+    Index -->|"owns"| Goals
+    Modal -->|"owns"| Form
+    Modal -->|"owns"| Error
 
-    Index -->|"isVisible, onClose, onSubmit"| Modal
-    Modal --> Form
-    Modal --> Error
+    Index -->|"isVisible / onClose / onSubmit"| Modal
+    Index -->|"goals prop"| List
+    List -->|"goal prop"| Card
+    Card -->|"calculates"| Progress
 
-    Index -->|"goals"| List
-    List -->|"goal"| Card
-    Card --> Progress
+    classDef component fill:#2563eb,color:#fff,stroke:#1d4ed8,stroke-width:2px
+    classDef state fill:#fef3c7,color:#1f2937,stroke:#f59e0b,stroke-width:2px
+    classDef derived fill:#dcfce7,color:#1f2937,stroke:#22c55e,stroke-width:2px,stroke-dasharray:5 5
+
+    class Index,Modal,List,Card component
+    class ModalVisible,Goals,Form,Error state
+    class Progress derived
 ```
 
 ### Add Goal state model
