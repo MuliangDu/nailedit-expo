@@ -1,56 +1,279 @@
-# Welcome to your Expo app 👋
+# NailedIt
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+NailedIt is a cross-platform habit and goal-tracking application for creating
+goals, recording daily check-ins, and building consistent habits.
 
-## Get started
+This repository contains the Expo and React Native client. A FastAPI backend is
+being developed alongside it to provide persistent goal storage, user
+management, and daily check-ins.
 
-1. Install dependencies
+## Project status
 
-   ```bash
-   npm install
-   ```
+NailedIt is a work in progress.
 
-2. Start the app
+Currently implemented:
 
-   ```bash
-   npx expo start
-   ```
+- Three-tab navigation for Goals, Nailed, and Profile
+- Reusable goal list, goal card, and button components
+- A segmented progress ring based on `streak / duration`
+- A validated Add Goal form presented in a keyboard-aware modal
+- Local goal creation with immediate, state-driven list updates
+- TypeScript types for goals and form data
+- Android, iOS, and Web targets through Expo
 
-In the output, you'll find options to open the app in a
+Currently in progress:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Connecting the client to the FastAPI REST API
+- Replacing temporary in-memory goals with persistent database data
+- Loading, error, empty, and retry states for API requests
+- Authentication and current-user state
+- PostgreSQL migration and deployment
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+> New goals currently live only in client memory. Reloading the application
+> resets the list to its initial data.
 
-## Get a fresh project
+## Technology
 
-When you're ready, run:
+### Client
 
-```bash
-npm run reset-project
+- TypeScript
+- React
+- React Native
+- Expo
+- Expo Router
+
+### Backend
+
+- Python
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- SQLite during local development
+- PostgreSQL migration planned
+
+The backend currently implements seven functional business endpoints across
+user management, goal CRUD, and daily check-ins, backed by a three-table
+relational model for users, goals, and check-ins.
+
+## Architecture
+
+### Component and state ownership
+
+Each unique piece of state has one owner. The screen owns data shared by
+multiple components, while the modal keeps its form-specific state local.
+Values that can be calculated, such as goal progress, are derived during
+rendering instead of being stored as additional state.
+
+```mermaid
+flowchart TD
+    Index["Goals Screen (Index)"]
+    ModalVisible["isAddGoalVisible"]
+    Goals["goals"]
+
+    Modal["AddGoalModal"]
+    Form["name, description, duration"]
+    Error["validation error"]
+
+    List["GoalsList"]
+    Card["GoalCard"]
+    Progress["progress = streak / duration"]
+
+    Index --> ModalVisible
+    Index --> Goals
+
+    Index -->|"isVisible, onClose, onSubmit"| Modal
+    Modal --> Form
+    Modal --> Error
+
+    Index -->|"goals"| List
+    List -->|"goal"| Card
+    Card --> Progress
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Add Goal state model
 
-### Other setup steps
+The current implementation uses React state and callbacks. This state diagram
+documents the intended behavior as API integration is added.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```mermaid
+stateDiagram-v2
+    [*] --> Closed
 
-## Learn more
+    Closed --> Editing: OPEN
+    Editing --> Invalid: SUBMIT_INVALID
+    Invalid --> Editing: INPUT_CHANGED
 
-To learn more about developing your project with Expo, look at the following resources:
+    Editing --> Submitting: SUBMIT_VALID
+    Submitting --> Closed: API_SUCCESS
+    Submitting --> Error: API_FAILURE
+    Error --> Submitting: RETRY
+    Error --> Editing: INPUT_CHANGED
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+    Editing --> Closed: CANCEL
+    Invalid --> Closed: CANCEL
+    Error --> Closed: CANCEL
+```
 
-## Join the community
+### Create Goal request flow
 
-Join our community of developers creating universal apps.
+The client-to-database flow below represents the target API-integrated
+implementation. At present, the client stops after the local state update.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```mermaid
+sequenceDiagram
+    actor User
+    participant Modal as AddGoalModal
+    participant Screen as Goals Screen
+    participant API as Goals API Client
+    participant Backend as FastAPI
+    participant DB as Database
+
+    User->>Modal: Fill in the goal form
+    User->>Modal: Press Create Goal
+    Modal->>Modal: Validate input
+    Modal->>Screen: onSubmit(formData)
+    Screen->>API: createGoal(formData)
+    API->>Backend: POST /users/{userId}/goals
+    Backend->>DB: Insert goal
+    DB-->>Backend: Created row
+    Backend-->>API: Goal response
+    API-->>Screen: Created goal
+    Screen->>Screen: Refresh goals
+    Screen->>Modal: Close modal
+```
+
+## Current client data flow
+
+The application currently uses a temporary in-memory workflow:
+
+```text
+AddGoalModal
+    -> validates AddGoalFormData
+    -> calls the parent onSubmit callback
+    -> Goals Screen creates a local Goal
+    -> setGoals creates a new goals array
+    -> GoalsList receives the new array
+    -> FlatList renders the new GoalCard
+```
+
+The next iteration will replace local goal creation with:
+
+```text
+POST goal
+    -> backend writes to the database
+    -> backend returns the persisted Goal
+    -> client refreshes or updates its server-state cache
+```
+
+## Project structure
+
+```text
+src/
+├── app/
+│   ├── _layout.tsx
+│   └── (tabs)/
+│       ├── _layout.tsx
+│       ├── index.tsx
+│       ├── nailed.tsx
+│       └── profile.tsx
+├── components/
+│   ├── AddGoalModal.tsx
+│   ├── Button.tsx
+│   ├── GoalCard.tsx
+│   └── GoalsList.tsx
+└── types/
+    └── goal.ts
+```
+
+As API integration is introduced, request logic will be separated from UI
+components:
+
+```text
+src/
+├── api/
+│   └── goals.ts
+├── hooks/
+│   └── useGoals.ts
+└── ...
+```
+
+## Getting started
+
+### Requirements
+
+- Node.js supported by the installed Expo SDK
+- npm
+- Expo Go, an Android emulator, an iOS simulator, or a web browser
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Start the development server
+
+```bash
+npx expo start
+```
+
+The Expo CLI provides options for opening the application on Android, iOS, or
+Web.
+
+You can also start a specific target:
+
+```bash
+npm run android
+npm run ios
+npm run web
+```
+
+### Type-check
+
+```bash
+npx tsc --noEmit
+```
+
+## Domain types
+
+The current client-side domain model is:
+
+```ts
+type Goal = {
+  id: number;
+  name: string;
+  description: string;
+  duration: number;
+  streak: number;
+};
+
+type AddGoalFormData = {
+  name: string;
+  description: string;
+  duration: number;
+};
+```
+
+The API response model will add persistence fields such as `user_id`,
+`created_at`, `last_checked_in_at`, and `longest_streak`.
+
+## Roadmap
+
+- [x] File-based tab navigation
+- [x] Reusable GoalCard and GoalsList components
+- [x] Dynamic streak progress visualization
+- [x] Validated Add Goal modal
+- [x] Local state-driven goal creation
+- [ ] Load goals from the REST API
+- [ ] Persist new goals through the REST API
+- [ ] Add daily check-in actions
+- [ ] Add loading, empty, error, and retry states
+- [ ] Add authentication and authorization
+- [ ] Add edit and delete goal workflows
+- [ ] Add automated client and API tests
+- [ ] Migrate the database to PostgreSQL
+- [ ] Add CI and production deployment
+
+## License
+
+This project is licensed under the terms in [LICENSE](LICENSE).
