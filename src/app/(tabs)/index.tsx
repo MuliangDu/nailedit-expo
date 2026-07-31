@@ -9,6 +9,7 @@ import { StyleSheet, Text, View } from "react-native";
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function loadGoals() {
@@ -20,6 +21,8 @@ export default function Index() {
         setGoals(loadedGoals);
       } catch (error) {
         console.error("Failed to load goals:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
     loadGoals();
@@ -43,7 +46,11 @@ export default function Index() {
     <View style={styles.container}>
       <Text style={styles.title}>My Goals</Text>
       <View style={styles.goalsContainer}>
-        <GoalsList goals={goals} />
+        {isLoading ? (
+          <Text style={styles.statusText}>Loading goals...</Text>
+        ) : (
+          <GoalsList goals={goals} />
+        )}
       </View>
       <View style={styles.footerContainer}>
         <Button
@@ -83,5 +90,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 12,
+  },
+  statusText: {
+    flex: 1,
+    color: "#b0b0b0",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 24,
   },
 });
