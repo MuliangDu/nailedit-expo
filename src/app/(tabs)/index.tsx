@@ -1,8 +1,9 @@
+import { getGoals } from "@/api/goals";
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
 import type { AddGoalFormData, Goal } from "@/types/goal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 const initialGoals: Goal[] = [
@@ -25,6 +26,19 @@ const initialGoals: Goal[] = [
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
+
+  useEffect(() => {
+    async function loadGoals() {
+      try {
+        const loadedGoals = await getGoals(1);
+
+        console.log("Goals loaded from API:", loadedGoals);
+      } catch (error) {
+        console.error("Failed to laod goals:", error);
+      }
+    }
+    loadGoals();
+  }, []);
 
   function handleAddGoal(formGoal: AddGoalFormData) {
     const newGoal: Goal = {

@@ -11,3 +11,14 @@ export type AddGoalFormData = {
   description: string;
   duration: number;
 };
+
+export type GoalResponse = Goal & {
+  user_id: number;
+  created_at: string;
+  last_checked_in_at: string | null;
+  longest_streak: number;
+};
+
+export type CreateGoalRequest = AddGoalFormData & {
+  user_id: number;
+};
