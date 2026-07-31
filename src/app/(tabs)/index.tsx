@@ -6,26 +6,9 @@ import type { AddGoalFormData, Goal } from "@/types/goal";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-const initialGoals: Goal[] = [
-  {
-    id: 1,
-    name: "Eat vegetable",
-    streak: 12,
-    duration: 20,
-    description: "eat vegetable everyday",
-  },
-  {
-    id: 2,
-    name: "study",
-    streak: 15,
-    duration: 25,
-    description: "study everyday",
-  },
-];
-
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
-  const [goals, setGoals] = useState<Goal[]>(initialGoals);
+  const [goals, setGoals] = useState<Goal[]>([]);
 
   useEffect(() => {
     async function loadGoals() {
@@ -33,8 +16,10 @@ export default function Index() {
         const loadedGoals = await getGoals(1);
 
         console.log("Goals loaded from API:", loadedGoals);
+
+        setGoals(loadedGoals);
       } catch (error) {
-        console.error("Failed to laod goals:", error);
+        console.error("Failed to load goals:", error);
       }
     }
     loadGoals();
