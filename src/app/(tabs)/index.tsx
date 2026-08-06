@@ -1,4 +1,4 @@
-import { getGoals } from "@/api/goals";
+import { createGoal, getGoals } from "@/api/goals";
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
@@ -36,18 +36,16 @@ export default function Index() {
     loadGoals();
   }, []);
 
-  function handleAddGoal(formGoal: AddGoalFormData) {
-    const newGoal: Goal = {
-      id: Date.now(),
-      name: formGoal.name,
-      description: formGoal.description,
-      duration: formGoal.duration,
-      streak: 0,
-    };
+  async function handleAddGoal(formGoal: AddGoalFormData) {
+    try {
+      const createdGoal = await createGoal(1, formGoal);
 
-    setGoals((currentGoals) => [...currentGoals, newGoal]);
+      setGoals((currentGoals) => [...currentGoals, createdGoal]);
 
-    setIsAddGoalVisible(false);
+      setIsAddGoalVisible(false);
+    } catch (error) {
+      console.error("Failed to create goal", error);
+    }
   }
 
   return (
