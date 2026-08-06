@@ -15,12 +15,16 @@ import { useEffect, useState } from "react";
 
 type AddGoalModalProps = {
   isVisible: boolean;
+  isSubmitting: boolean;
+  submitError: string | null;
   onClose: () => void;
-  onSubmit: (goal: AddGoalFormData) => void;
+  onSubmit: (goal: AddGoalFormData) => Promise<void>;
 };
 
 export default function AddGoalModal({
   isVisible,
+  isSubmitting,
+  submitError,
   onClose,
   onSubmit,
 }: AddGoalModalProps) {
@@ -39,6 +43,10 @@ export default function AddGoalModal({
   }, [isVisible]);
 
   function handleSubmit() {
+    if (isSubmitting) {
+      return;
+    }
+
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
     const parsedDuration = Number(duration);
@@ -69,7 +77,13 @@ export default function AddGoalModal({
       description: trimmedDescription,
       duration: parsedDuration,
     };
-    onSubmit(goalData);
+    void onSubmit(goalData);
+  }
+
+  function handleClose() {
+    if (!isSubmitting) {
+      onClose();
+    }
   }
 
   return (
@@ -77,13 +91,17 @@ export default function AddGoalModal({
       visible={isVisible}
       transparent={true}
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={handleClose}
+          disabled={isSubmitting}
+        />
 
         <View style={styles.modalContainer}>
           <ScrollView
@@ -97,6 +115,7 @@ export default function AddGoalModal({
               style={styles.input}
               value={name}
               onChangeText={setName}
+              editable={!isSubmitting}
               placeholder={"For example: Go to the gym"}
               placeholderTextColor={"#777d84"}
             />
@@ -106,6 +125,7 @@ export default function AddGoalModal({
               style={[styles.input, styles.descriptionInput]}
               value={description}
               onChangeText={setDescription}
+              editable={!isSubmitting}
               placeholder={"What do you want to achieve?"}
               placeholderTextColor={"#777d84"}
               multiline={true}
@@ -117,17 +137,38 @@ export default function AddGoalModal({
               style={styles.input}
               value={duration}
               onChangeText={setDuration}
+              editable={!isSubmitting}
               placeholder={"For example: 30"}
               placeholderTextColor={"#777d84"}
               keyboardType={"number-pad"}
             />
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error || submitError ? (
+              <Text style={styles.errorText}>{error || submitError}</Text>
+            ) : null}
+
             <View style={styles.actions}>
-              <Pressable style={styles.createButton} onPress={handleSubmit}>
-                <Text style={styles.createButtonText}>Create Goal</Text>
+              <Pressable
+                style={[
+                  styles.createButton,
+                  isSubmitting && styles.buttonDisabled,
+                ]}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.createButtonText}>
+                  {isSubmitting ? "Creating..." : "Create Goal"}
+                </Text>
               </Pressable>
-              <Pressable style={styles.closeButton} onPress={onClose}>
+
+              <Pressable
+                style={[
+                  styles.closeButton,
+                  isSubmitting && styles.buttonDisabled,
+                ]}
+                onPress={handleClose}
+                disabled={isSubmitting}
+              >
                 <Text style={styles.closeButtonText}>Cancel</Text>
               </Pressable>
             </View>
@@ -197,6 +238,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   createButtonText: {
     color: "#25292e",

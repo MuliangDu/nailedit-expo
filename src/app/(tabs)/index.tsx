@@ -11,6 +11,8 @@ export default function Index() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadGoals() {
@@ -36,8 +38,28 @@ export default function Index() {
     loadGoals();
   }, []);
 
+  function handleOpenAddGoal() {
+    setSubmitError(null);
+    setIsAddGoalVisible(true);
+  }
+
+  function handleCloseAddGoal() {
+    if (isSubmitting) {
+      return;
+    }
+
+    setSubmitError(null);
+    setIsAddGoalVisible(false);
+  }
+
   async function handleAddGoal(formGoal: AddGoalFormData) {
+    if (isSubmitting) {
+      return;
+    }
     try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
       const createdGoal = await createGoal(1, formGoal);
 
       setGoals((currentGoals) => [...currentGoals, createdGoal]);
@@ -45,6 +67,11 @@ export default function Index() {
       setIsAddGoalVisible(false);
     } catch (error) {
       console.error("Failed to create goal", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "An unexpected error occured.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -61,15 +88,13 @@ export default function Index() {
         )}
       </View>
       <View style={styles.footerContainer}>
-        <Button
-          label="Add Goal"
-          theme="primary"
-          onPress={() => setIsAddGoalVisible(true)}
-        />
+        <Button label="Add Goal" theme="primary" onPress={handleOpenAddGoal} />
       </View>
       <AddGoalModal
         isVisible={isAddGoalVisible}
-        onClose={() => setIsAddGoalVisible(false)}
+        isSubmitting={isSubmitting}
+        submitError={submitError}
+        onClose={handleCloseAddGoal}
         onSubmit={handleAddGoal}
       />
     </View>
