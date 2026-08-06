@@ -68,7 +68,9 @@ export default function Index() {
     } catch (error) {
       console.error("Failed to create goal", error);
       setSubmitError(
-        error instanceof Error ? error.message : "An unexpected error occured.",
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
       );
     } finally {
       setIsSubmitting(false);
