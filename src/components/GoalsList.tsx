@@ -16,9 +16,8 @@ export default function GoalsList({ goals }: GoalsListProps) {
       )}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}> No goals yet</Text>
+          <Text style={styles.emptyTitle}>No goals yet</Text>
           <Text style={styles.emptyDescription}>
-            {" "}
             Create your first goal to start building a streak.{" "}
           </Text>
         </View>
