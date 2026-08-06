@@ -10,10 +10,13 @@ export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadGoals() {
       try {
+        setLoadError(null);
+
         const loadedGoals = await getGoals(1);
 
         console.log("Goals loaded from API:", loadedGoals);
@@ -21,6 +24,11 @@ export default function Index() {
         setGoals(loadedGoals);
       } catch (error) {
         console.error("Failed to load goals:", error);
+        if (error instanceof Error) {
+          setLoadError(error.message);
+        } else {
+          setLoadError("An unexpected error occurred.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -48,6 +56,8 @@ export default function Index() {
       <View style={styles.goalsContainer}>
         {isLoading ? (
           <Text style={styles.statusText}>Loading goals...</Text>
+        ) : loadError ? (
+          <Text style={styles.errorText}>{loadError}</Text>
         ) : (
           <GoalsList goals={goals} />
         )}
@@ -97,5 +107,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 24,
+  },
+  errorText: {
+    color: "#ff6b6b",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 24,
+    paddingHorizontal: 20,
   },
 });
