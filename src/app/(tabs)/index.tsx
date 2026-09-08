@@ -2,13 +2,13 @@ import { checkInGoal, createGoal, getGoals } from "@/api/goals";
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
-import type { AddGoalFormData, Goal } from "@/types/goal";
+import type { AddGoalFormData, GoalResponse } from "@/types/goal";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<GoalResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

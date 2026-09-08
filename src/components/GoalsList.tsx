@@ -1,9 +1,9 @@
-import type { Goal } from "@/types/goal";
+import type { GoalResponse } from "@/types/goal";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import GoalCard from "./GoalCard";
 
 type GoalsListProps = {
-  goals: Goal[];
+  goals: GoalResponse[];
   checkingInGoalId: number | null;
   onCheckIn: (goalId: number) => void;
 };

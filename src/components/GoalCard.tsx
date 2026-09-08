@@ -1,4 +1,4 @@
-import type { Goal } from "@/types/goal";
+import type { Goal, GoalResponse } from "@/types/goal";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const PROGRESS_SEGMENTS = 36;
@@ -39,7 +39,7 @@ function ProgressRing({ streak, duration }: Pick<Goal, "streak" | "duration">) {
 }
 
 type GoalCardProps = {
-  goal: Goal;
+  goal: GoalResponse;
   isCheckingIn: boolean;
   onCheckIn: (goalId: number) => void;
 };
@@ -48,6 +48,14 @@ export default function GoalCard({
   isCheckingIn,
   onCheckIn,
 }: GoalCardProps) {
+  const today = new Date();
+  const localDate = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+  const isCheckedInToday = goal.last_checked_in_at?.slice(0, 10) === localDate;
+
   return (
     <View style={styles.goalCard}>
       <View style={styles.goalDetails}>
@@ -57,16 +65,21 @@ export default function GoalCard({
         </Text>
         <Pressable
           accessibilityRole="button"
-          disabled={isCheckingIn}
+          disabled={isCheckingIn || isCheckedInToday}
           onPress={() => onCheckIn(goal.id)}
           style={({ pressed }) => [
             styles.checkInButton,
             pressed && styles.checkInButtonPressed,
-            isCheckingIn && styles.checkInButtonDisabled,
+            (isCheckingIn || isCheckedInToday) &&
+              styles.checkInButtonDisabled,
           ]}
         >
           <Text style={styles.checkInButtonText}>
-            {isCheckingIn ? "Checking in..." : "Check in today"}
+            {isCheckingIn
+              ? "Checking in..."
+              : isCheckedInToday
+                ? "Done today"
+                : "Check in today"}
           </Text>
         </Pressable>
       </View>
