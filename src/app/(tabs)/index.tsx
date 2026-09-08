@@ -1,4 +1,4 @@
-import { createGoal, getGoals } from "@/api/goals";
+import { checkInGoal, createGoal, getGoals } from "@/api/goals";
 import AddGoalModal from "@/components/AddGoalModal";
 import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
@@ -13,6 +13,8 @@ export default function Index() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [checkingInGoalId, setCheckingInGoalId] = useState<number | null>(null);
+  const [checkInError, setCheckInError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadGoals() {
@@ -77,16 +79,51 @@ export default function Index() {
     }
   }
 
+  async function handleCheckIn(goalId: number) {
+    if (checkingInGoalId !== null) {
+      return;
+    }
+
+    try {
+      setCheckingInGoalId(goalId);
+      setCheckInError(null);
+
+      const updatedGoal = await checkInGoal(1, goalId);
+
+      setGoals((currentGoals) =>
+        currentGoals.map((goal) =>
+          goal.id === updatedGoal.id ? updatedGoal : goal,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to check in", error);
+      setCheckInError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
+      );
+    } finally {
+      setCheckingInGoalId(null);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Goals</Text>
       <View style={styles.goalsContainer}>
+        {checkInError ? (
+          <Text style={styles.checkInErrorText}>{checkInError}</Text>
+        ) : null}
         {isLoading ? (
           <Text style={styles.statusText}>Loading goals...</Text>
         ) : loadError ? (
           <Text style={styles.errorText}>{loadError}</Text>
         ) : (
-          <GoalsList goals={goals} />
+          <GoalsList
+            goals={goals}
+            checkingInGoalId={checkingInGoalId}
+            onCheckIn={handleCheckIn}
+          />
         )}
       </View>
       <View style={styles.footerContainer}>
@@ -139,5 +176,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 24,
     paddingHorizontal: 20,
+  },
+  checkInErrorText: {
+    color: "#ff6b6b",
+    fontSize: 14,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+    textAlign: "center",
   },
 });

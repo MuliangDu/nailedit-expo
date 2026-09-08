@@ -1,4 +1,4 @@
-import { Goal } from "@/types/goal";
+import type { Goal } from "@/types/goal";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const PROGRESS_SEGMENTS = 36;
@@ -40,19 +40,38 @@ function ProgressRing({ streak, duration }: Pick<Goal, "streak" | "duration">) {
 
 type GoalCardProps = {
   goal: Goal;
-  onPress: (goal: Goal) => void;
+  isCheckingIn: boolean;
+  onCheckIn: (goalId: number) => void;
 };
-export default function GoalCard({ goal, onPress }: GoalCardProps) {
+export default function GoalCard({
+  goal,
+  isCheckingIn,
+  onCheckIn,
+}: GoalCardProps) {
   return (
-    <Pressable style={styles.goalCard} onPress={() => onPress(goal)}>
+    <View style={styles.goalCard}>
       <View style={styles.goalDetails}>
         <Text style={styles.goalName}>{goal.name}</Text>
         <Text style={styles.streak}>
           {goal.streak} day streak / {goal.duration} Days
         </Text>
+        <Pressable
+          accessibilityRole="button"
+          disabled={isCheckingIn}
+          onPress={() => onCheckIn(goal.id)}
+          style={({ pressed }) => [
+            styles.checkInButton,
+            pressed && styles.checkInButtonPressed,
+            isCheckingIn && styles.checkInButtonDisabled,
+          ]}
+        >
+          <Text style={styles.checkInButtonText}>
+            {isCheckingIn ? "Checking in..." : "Check in today"}
+          </Text>
+        </Pressable>
       </View>
       <ProgressRing streak={goal.streak} duration={goal.duration} />
-    </Pressable>
+    </View>
   );
 }
 
@@ -82,6 +101,29 @@ const styles = StyleSheet.create({
     fontSize: 17,
     marginTop: 6,
     fontWeight: "600",
+  },
+
+  checkInButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#36d17c",
+    borderRadius: 8,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+
+  checkInButtonPressed: {
+    opacity: 0.8,
+  },
+
+  checkInButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  checkInButtonText: {
+    color: "#25292e",
+    fontSize: 14,
+    fontWeight: "700",
   },
 
   progressRing: {

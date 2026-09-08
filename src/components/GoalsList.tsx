@@ -4,15 +4,25 @@ import GoalCard from "./GoalCard";
 
 type GoalsListProps = {
   goals: Goal[];
+  checkingInGoalId: number | null;
+  onCheckIn: (goalId: number) => void;
 };
 
-export default function GoalsList({ goals }: GoalsListProps) {
+export default function GoalsList({
+  goals,
+  checkingInGoalId,
+  onCheckIn,
+}: GoalsListProps) {
   return (
     <FlatList
       data={goals}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
-        <GoalCard goal={item} onPress={() => alert(`${item.id} is pressed`)} />
+        <GoalCard
+          goal={item}
+          isCheckingIn={checkingInGoalId === item.id}
+          onCheckIn={onCheckIn}
+        />
       )}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
