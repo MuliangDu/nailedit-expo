@@ -4,7 +4,7 @@ import Button from "@/components/Button";
 import GoalsList from "@/components/GoalsList";
 import type { AddGoalFormData, Goal } from "@/types/goal";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const [isAddGoalVisible, setIsAddGoalVisible] = useState(false);
@@ -15,6 +15,7 @@ export default function Index() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [checkingInGoalId, setCheckingInGoalId] = useState<number | null>(null);
   const [checkInError, setCheckInError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     async function loadGoals() {
@@ -38,7 +39,13 @@ export default function Index() {
       }
     }
     loadGoals();
-  }, []);
+  }, [loadAttempt]);
+
+  function handleRetryLoad() {
+    setIsLoading(true);
+    setLoadError(null);
+    setLoadAttempt((currentAttempt) => currentAttempt + 1);
+  }
 
   function handleOpenAddGoal() {
     setSubmitError(null);
@@ -117,7 +124,19 @@ export default function Index() {
         {isLoading ? (
           <Text style={styles.statusText}>Loading goals...</Text>
         ) : loadError ? (
-          <Text style={styles.errorText}>{loadError}</Text>
+          <View style={styles.loadErrorContainer}>
+            <Text style={styles.errorText}>{loadError}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleRetryLoad}
+              style={({ pressed }) => [
+                styles.retryButton,
+                pressed && styles.retryButtonPressed,
+              ]}
+            >
+              <Text style={styles.retryButtonText}>Try again</Text>
+            </Pressable>
+          </View>
         ) : (
           <GoalsList
             goals={goals}
@@ -174,8 +193,26 @@ const styles = StyleSheet.create({
     color: "#ff6b6b",
     fontSize: 16,
     textAlign: "center",
-    marginTop: 24,
     paddingHorizontal: 20,
+  },
+  loadErrorContainer: {
+    alignItems: "center",
+    marginTop: 24,
+  },
+  retryButton: {
+    backgroundColor: "#36d17c",
+    borderRadius: 8,
+    marginTop: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  retryButtonPressed: {
+    opacity: 0.8,
+  },
+  retryButtonText: {
+    color: "#25292e",
+    fontSize: 14,
+    fontWeight: "700",
   },
   checkInErrorText: {
     color: "#ff6b6b",
